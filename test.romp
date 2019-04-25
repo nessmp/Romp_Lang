@@ -1,0 +1,15 @@
+program test
+integer num
+real array[5]
+integer matrix[9][10]
+
+subroutine ifTest
+    if 8 == num then
+        num = num + 2
+    end if
+end subroutine
+
+subroutine doTest
+end subroutine
+
+end program
