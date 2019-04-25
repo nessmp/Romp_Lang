@@ -25,10 +25,10 @@ Rule 19    ELIF -> elif LOGEXP then STATEMENTS ELIF
 Rule 20    ELIF -> <empty>
 Rule 21    ELSE -> else STATEMENTS
 Rule 22    ELSE -> <empty>
-Rule 23    LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP
-Rule 24    LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
-Rule 25    ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP
-Rule 26    ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+Rule 23    LOGEXP -> LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
+Rule 24    LOGEXP -> ANDEXP
+Rule 25    ANDEXP -> ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+Rule 26    ANDEXP -> COMPARISON
 Rule 27    COMPARISON -> openParentheses LOGEXP closeParentheses
 Rule 28    COMPARISON -> VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON
 Rule 29    COMPARISON -> not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
@@ -119,12 +119,12 @@ write                : 16
 Nonterminals, with rules where they appear
 
 ACTION_AND_ANDEXP    : 25
-ACTION_CREATE_QUADRUPLE_LOGEXP : 23 24
+ACTION_CREATE_QUADRUPLE_LOGEXP : 23
 ACTION_DIVSIGN_MULDIV : 49
 ACTION_GENERATE_QUADRUPLET_ARITEXP : 45 46
 ACTION_GENERATE_QUADRUPLET_MULDIV : 48 49
 ACTION_GENERATE_QUADRUPLET_SET : 13
-ACTION_GENERATE_QUADRUPLE_ANDEXP : 25 26
+ACTION_GENERATE_QUADRUPLE_ANDEXP : 25
 ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON : 28
 ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON : 29
 ACTION_INT_VAL       : 53
@@ -319,8 +319,8 @@ state 11
     elif            reduce using rule 8 (ARRAY -> .)
     else            reduce using rule 8 (ARRAY -> .)
     and             reduce using rule 8 (ARRAY -> .)
-    or              reduce using rule 8 (ARRAY -> .)
     then            reduce using rule 8 (ARRAY -> .)
+    or              reduce using rule 8 (ARRAY -> .)
 
     ARRAY                          shift and go to state 23
 
@@ -334,10 +334,10 @@ state 12
 state 13
 
     (11) STATEMENTS -> if . LOGEXP then STATEMENTS ELIF ELSE end if
-    (23) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP
-    (24) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
-    (25) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP
-    (26) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (23) LOGEXP -> . LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
+    (24) LOGEXP -> . ANDEXP
+    (25) ANDEXP -> . ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (26) ANDEXP -> . COMPARISON
     (27) COMPARISON -> . openParentheses LOGEXP closeParentheses
     (28) COMPARISON -> . VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON
     (29) COMPARISON -> . not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
@@ -502,8 +502,8 @@ state 23
     elif            reduce using rule 55 (VAR -> id ARRAY .)
     else            reduce using rule 55 (VAR -> id ARRAY .)
     and             reduce using rule 55 (VAR -> id ARRAY .)
-    or              reduce using rule 55 (VAR -> id ARRAY .)
     then            reduce using rule 55 (VAR -> id ARRAY .)
+    or              reduce using rule 55 (VAR -> id ARRAY .)
 
 
 state 24
@@ -516,47 +516,47 @@ state 24
 state 25
 
     (11) STATEMENTS -> if LOGEXP . then STATEMENTS ELIF ELSE end if
+    (23) LOGEXP -> LOGEXP . or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
 
     then            shift and go to state 48
+    or              shift and go to state 49
 
 
 state 26
 
-    (23) LOGEXP -> ANDEXP . ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP
-    (24) LOGEXP -> ANDEXP . ACTION_CREATE_QUADRUPLE_LOGEXP
-    (68) ACTION_CREATE_QUADRUPLE_LOGEXP -> .
+    (24) LOGEXP -> ANDEXP .
+    (25) ANDEXP -> ANDEXP . and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
 
-    or              reduce using rule 68 (ACTION_CREATE_QUADRUPLE_LOGEXP -> .)
-    then            reduce using rule 68 (ACTION_CREATE_QUADRUPLE_LOGEXP -> .)
-    closeParentheses reduce using rule 68 (ACTION_CREATE_QUADRUPLE_LOGEXP -> .)
-    and             reduce using rule 68 (ACTION_CREATE_QUADRUPLE_LOGEXP -> .)
+  ! shift/reduce conflict for and resolved as shift
+    then            reduce using rule 24 (LOGEXP -> ANDEXP .)
+    or              reduce using rule 24 (LOGEXP -> ANDEXP .)
+    closeParentheses reduce using rule 24 (LOGEXP -> ANDEXP .)
+    and             shift and go to state 50
 
-    ACTION_CREATE_QUADRUPLE_LOGEXP shift and go to state 49
+  ! and             [ reduce using rule 24 (LOGEXP -> ANDEXP .) ]
+
 
 state 27
 
-    (25) ANDEXP -> COMPARISON . ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP
-    (26) ANDEXP -> COMPARISON . ACTION_GENERATE_QUADRUPLE_ANDEXP
-    (69) ACTION_GENERATE_QUADRUPLE_ANDEXP -> .
+    (26) ANDEXP -> COMPARISON .
 
-    and             reduce using rule 69 (ACTION_GENERATE_QUADRUPLE_ANDEXP -> .)
-    or              reduce using rule 69 (ACTION_GENERATE_QUADRUPLE_ANDEXP -> .)
-    then            reduce using rule 69 (ACTION_GENERATE_QUADRUPLE_ANDEXP -> .)
-    closeParentheses reduce using rule 69 (ACTION_GENERATE_QUADRUPLE_ANDEXP -> .)
+    and             reduce using rule 26 (ANDEXP -> COMPARISON .)
+    then            reduce using rule 26 (ANDEXP -> COMPARISON .)
+    or              reduce using rule 26 (ANDEXP -> COMPARISON .)
+    closeParentheses reduce using rule 26 (ANDEXP -> COMPARISON .)
 
-    ACTION_GENERATE_QUADRUPLE_ANDEXP shift and go to state 50
 
 state 28
 
     (27) COMPARISON -> openParentheses . LOGEXP closeParentheses
     (51) VALUE -> openParentheses . ARITEXP closeParentheses
-    (23) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP
-    (24) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
+    (23) LOGEXP -> . LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
+    (24) LOGEXP -> . ANDEXP
     (44) ARITEXP -> . MULDIV
     (45) ARITEXP -> . ARITEXP plusSign ACTION_PLUSSIGN_ARITEXP MULDIV ACTION_GENERATE_QUADRUPLET_ARITEXP
     (46) ARITEXP -> . ARITEXP minusSign ACTION_MINUSSIGN_ARITEXP MULDIV ACTION_GENERATE_QUADRUPLET_ARITEXP
-    (25) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP
-    (26) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (25) ANDEXP -> . ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (26) ANDEXP -> . COMPARISON
     (47) MULDIV -> . VALUE
     (48) MULDIV -> . MULDIV multSign ACTION_MULTSIGN_MULDIV VALUE ACTION_GENERATE_QUADRUPLET_MULDIV
     (49) MULDIV -> . MULDIV divSign ACTION_DIVSIGN_MULDIV VALUE ACTION_GENERATE_QUADRUPLET_MULDIV
@@ -607,10 +607,10 @@ state 29
 state 30
 
     (29) COMPARISON -> not . LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
-    (23) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP
-    (24) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
-    (25) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP
-    (26) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (23) LOGEXP -> . LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
+    (24) LOGEXP -> . ANDEXP
+    (25) ANDEXP -> . ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (26) ANDEXP -> . COMPARISON
     (27) COMPARISON -> . openParentheses LOGEXP closeParentheses
     (28) COMPARISON -> . VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON
     (29) COMPARISON -> . not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
@@ -660,8 +660,8 @@ state 31
     elif            reduce using rule 50 (VALUE -> VAL .)
     else            reduce using rule 50 (VALUE -> VAL .)
     and             reduce using rule 50 (VALUE -> VAL .)
-    or              reduce using rule 50 (VALUE -> VAL .)
     then            reduce using rule 50 (VALUE -> VAL .)
+    or              reduce using rule 50 (VALUE -> VAL .)
     semicolon       reduce using rule 50 (VALUE -> VAL .)
 
 
@@ -692,8 +692,8 @@ state 32
     elif            reduce using rule 56 (ACTION_VAR_VAL -> .)
     else            reduce using rule 56 (ACTION_VAR_VAL -> .)
     and             reduce using rule 56 (ACTION_VAR_VAL -> .)
-    or              reduce using rule 56 (ACTION_VAR_VAL -> .)
     then            reduce using rule 56 (ACTION_VAR_VAL -> .)
+    or              reduce using rule 56 (ACTION_VAR_VAL -> .)
     semicolon       reduce using rule 56 (ACTION_VAR_VAL -> .)
 
     ACTION_VAR_VAL                 shift and go to state 63
@@ -725,8 +725,8 @@ state 33
     elif            reduce using rule 57 (ACTION_INT_VAL -> .)
     else            reduce using rule 57 (ACTION_INT_VAL -> .)
     and             reduce using rule 57 (ACTION_INT_VAL -> .)
-    or              reduce using rule 57 (ACTION_INT_VAL -> .)
     then            reduce using rule 57 (ACTION_INT_VAL -> .)
+    or              reduce using rule 57 (ACTION_INT_VAL -> .)
     semicolon       reduce using rule 57 (ACTION_INT_VAL -> .)
 
     ACTION_INT_VAL                 shift and go to state 64
@@ -758,8 +758,8 @@ state 34
     elif            reduce using rule 58 (ACTION_REAL_VAL -> .)
     else            reduce using rule 58 (ACTION_REAL_VAL -> .)
     and             reduce using rule 58 (ACTION_REAL_VAL -> .)
-    or              reduce using rule 58 (ACTION_REAL_VAL -> .)
     then            reduce using rule 58 (ACTION_REAL_VAL -> .)
+    or              reduce using rule 58 (ACTION_REAL_VAL -> .)
     semicolon       reduce using rule 58 (ACTION_REAL_VAL -> .)
 
     ACTION_REAL_VAL                shift and go to state 65
@@ -937,37 +937,37 @@ state 48
 
 state 49
 
-    (23) LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP . or ACTION_OR_LOGEXP LOGEXP
-    (24) LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .
+    (23) LOGEXP -> LOGEXP or . ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
+    (66) ACTION_OR_LOGEXP -> .
 
-  ! shift/reduce conflict for or resolved as shift
-    or              shift and go to state 82
-    then            reduce using rule 24 (LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .)
-    closeParentheses reduce using rule 24 (LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .)
-    and             reduce using rule 24 (LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .)
+    openParentheses reduce using rule 66 (ACTION_OR_LOGEXP -> .)
+    not             reduce using rule 66 (ACTION_OR_LOGEXP -> .)
+    int             reduce using rule 66 (ACTION_OR_LOGEXP -> .)
+    real            reduce using rule 66 (ACTION_OR_LOGEXP -> .)
+    id              reduce using rule 66 (ACTION_OR_LOGEXP -> .)
 
-  ! or              [ reduce using rule 24 (LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .) ]
-
+    ACTION_OR_LOGEXP               shift and go to state 82
 
 state 50
 
-    (25) ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP . and ACTION_AND_ANDEXP ANDEXP
-    (26) ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .
+    (25) ANDEXP -> ANDEXP and . ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (67) ACTION_AND_ANDEXP -> .
 
-  ! shift/reduce conflict for and resolved as shift
-    and             shift and go to state 83
-    or              reduce using rule 26 (ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .)
-    then            reduce using rule 26 (ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .)
-    closeParentheses reduce using rule 26 (ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .)
+    openParentheses reduce using rule 67 (ACTION_AND_ANDEXP -> .)
+    not             reduce using rule 67 (ACTION_AND_ANDEXP -> .)
+    int             reduce using rule 67 (ACTION_AND_ANDEXP -> .)
+    real            reduce using rule 67 (ACTION_AND_ANDEXP -> .)
+    id              reduce using rule 67 (ACTION_AND_ANDEXP -> .)
 
-  ! and             [ reduce using rule 26 (ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .) ]
-
+    ACTION_AND_ANDEXP              shift and go to state 83
 
 state 51
 
     (27) COMPARISON -> openParentheses LOGEXP . closeParentheses
+    (23) LOGEXP -> LOGEXP . or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
 
     closeParentheses shift and go to state 84
+    or              shift and go to state 49
 
 
 state 52
@@ -1112,12 +1112,16 @@ state 61
 state 62
 
     (29) COMPARISON -> not LOGEXP . ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
+    (23) LOGEXP -> LOGEXP . or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
     (71) ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON -> .
 
+  ! shift/reduce conflict for or resolved as shift
+    or              shift and go to state 49
     and             reduce using rule 71 (ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON -> .)
-    or              reduce using rule 71 (ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON -> .)
     then            reduce using rule 71 (ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON -> .)
     closeParentheses reduce using rule 71 (ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON -> .)
+
+  ! or              [ reduce using rule 71 (ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON -> .) ]
 
     ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON shift and go to state 91
 
@@ -1147,8 +1151,8 @@ state 63
     elif            reduce using rule 52 (VAL -> VAR ACTION_VAR_VAL .)
     else            reduce using rule 52 (VAL -> VAR ACTION_VAR_VAL .)
     and             reduce using rule 52 (VAL -> VAR ACTION_VAR_VAL .)
-    or              reduce using rule 52 (VAL -> VAR ACTION_VAR_VAL .)
     then            reduce using rule 52 (VAL -> VAR ACTION_VAR_VAL .)
+    or              reduce using rule 52 (VAL -> VAR ACTION_VAR_VAL .)
     semicolon       reduce using rule 52 (VAL -> VAR ACTION_VAR_VAL .)
 
 
@@ -1178,8 +1182,8 @@ state 64
     elif            reduce using rule 53 (VAL -> int ACTION_INT_VAL .)
     else            reduce using rule 53 (VAL -> int ACTION_INT_VAL .)
     and             reduce using rule 53 (VAL -> int ACTION_INT_VAL .)
-    or              reduce using rule 53 (VAL -> int ACTION_INT_VAL .)
     then            reduce using rule 53 (VAL -> int ACTION_INT_VAL .)
+    or              reduce using rule 53 (VAL -> int ACTION_INT_VAL .)
     semicolon       reduce using rule 53 (VAL -> int ACTION_INT_VAL .)
 
 
@@ -1209,8 +1213,8 @@ state 65
     elif            reduce using rule 54 (VAL -> real ACTION_REAL_VAL .)
     else            reduce using rule 54 (VAL -> real ACTION_REAL_VAL .)
     and             reduce using rule 54 (VAL -> real ACTION_REAL_VAL .)
-    or              reduce using rule 54 (VAL -> real ACTION_REAL_VAL .)
     then            reduce using rule 54 (VAL -> real ACTION_REAL_VAL .)
+    or              reduce using rule 54 (VAL -> real ACTION_REAL_VAL .)
     semicolon       reduce using rule 54 (VAL -> real ACTION_REAL_VAL .)
 
 
@@ -1487,8 +1491,8 @@ state 80
     elif            reduce using rule 7 (ARRAY -> openBracket int closeBracket .)
     else            reduce using rule 7 (ARRAY -> openBracket int closeBracket .)
     and             reduce using rule 7 (ARRAY -> openBracket int closeBracket .)
-    or              reduce using rule 7 (ARRAY -> openBracket int closeBracket .)
     then            reduce using rule 7 (ARRAY -> openBracket int closeBracket .)
+    or              reduce using rule 7 (ARRAY -> openBracket int closeBracket .)
 
 
 state 81
@@ -1505,37 +1509,62 @@ state 81
 
 state 82
 
-    (23) LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or . ACTION_OR_LOGEXP LOGEXP
-    (66) ACTION_OR_LOGEXP -> .
+    (23) LOGEXP -> LOGEXP or ACTION_OR_LOGEXP . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
+    (25) ANDEXP -> . ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (26) ANDEXP -> . COMPARISON
+    (27) COMPARISON -> . openParentheses LOGEXP closeParentheses
+    (28) COMPARISON -> . VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON
+    (29) COMPARISON -> . not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
+    (50) VALUE -> . VAL
+    (51) VALUE -> . openParentheses ARITEXP closeParentheses
+    (52) VAL -> . VAR ACTION_VAR_VAL
+    (53) VAL -> . int ACTION_INT_VAL
+    (54) VAL -> . real ACTION_REAL_VAL
+    (55) VAR -> . id ARRAY
 
-    openParentheses reduce using rule 66 (ACTION_OR_LOGEXP -> .)
-    not             reduce using rule 66 (ACTION_OR_LOGEXP -> .)
-    int             reduce using rule 66 (ACTION_OR_LOGEXP -> .)
-    real            reduce using rule 66 (ACTION_OR_LOGEXP -> .)
-    id              reduce using rule 66 (ACTION_OR_LOGEXP -> .)
+    openParentheses shift and go to state 28
+    not             shift and go to state 30
+    int             shift and go to state 33
+    real            shift and go to state 34
+    id              shift and go to state 11
 
-    ACTION_OR_LOGEXP               shift and go to state 104
+    ANDEXP                         shift and go to state 104
+    COMPARISON                     shift and go to state 27
+    VALUE                          shift and go to state 29
+    VAL                            shift and go to state 31
+    VAR                            shift and go to state 32
 
 state 83
 
-    (25) ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and . ACTION_AND_ANDEXP ANDEXP
-    (67) ACTION_AND_ANDEXP -> .
+    (25) ANDEXP -> ANDEXP and ACTION_AND_ANDEXP . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (27) COMPARISON -> . openParentheses LOGEXP closeParentheses
+    (28) COMPARISON -> . VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON
+    (29) COMPARISON -> . not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
+    (50) VALUE -> . VAL
+    (51) VALUE -> . openParentheses ARITEXP closeParentheses
+    (52) VAL -> . VAR ACTION_VAR_VAL
+    (53) VAL -> . int ACTION_INT_VAL
+    (54) VAL -> . real ACTION_REAL_VAL
+    (55) VAR -> . id ARRAY
 
-    openParentheses reduce using rule 67 (ACTION_AND_ANDEXP -> .)
-    not             reduce using rule 67 (ACTION_AND_ANDEXP -> .)
-    int             reduce using rule 67 (ACTION_AND_ANDEXP -> .)
-    real            reduce using rule 67 (ACTION_AND_ANDEXP -> .)
-    id              reduce using rule 67 (ACTION_AND_ANDEXP -> .)
+    openParentheses shift and go to state 28
+    not             shift and go to state 30
+    int             shift and go to state 33
+    real            shift and go to state 34
+    id              shift and go to state 11
 
-    ACTION_AND_ANDEXP              shift and go to state 105
+    COMPARISON                     shift and go to state 105
+    VALUE                          shift and go to state 29
+    VAL                            shift and go to state 31
+    VAR                            shift and go to state 32
 
 state 84
 
     (27) COMPARISON -> openParentheses LOGEXP closeParentheses .
 
     and             reduce using rule 27 (COMPARISON -> openParentheses LOGEXP closeParentheses .)
-    or              reduce using rule 27 (COMPARISON -> openParentheses LOGEXP closeParentheses .)
     then            reduce using rule 27 (COMPARISON -> openParentheses LOGEXP closeParentheses .)
+    or              reduce using rule 27 (COMPARISON -> openParentheses LOGEXP closeParentheses .)
     closeParentheses reduce using rule 27 (COMPARISON -> openParentheses LOGEXP closeParentheses .)
 
 
@@ -1565,8 +1594,8 @@ state 85
     elif            reduce using rule 51 (VALUE -> openParentheses ARITEXP closeParentheses .)
     else            reduce using rule 51 (VALUE -> openParentheses ARITEXP closeParentheses .)
     and             reduce using rule 51 (VALUE -> openParentheses ARITEXP closeParentheses .)
-    or              reduce using rule 51 (VALUE -> openParentheses ARITEXP closeParentheses .)
     then            reduce using rule 51 (VALUE -> openParentheses ARITEXP closeParentheses .)
+    or              reduce using rule 51 (VALUE -> openParentheses ARITEXP closeParentheses .)
     semicolon       reduce using rule 51 (VALUE -> openParentheses ARITEXP closeParentheses .)
 
 
@@ -1624,8 +1653,8 @@ state 90
     (70) ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON -> .
 
     and             reduce using rule 70 (ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON -> .)
-    or              reduce using rule 70 (ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON -> .)
     then            reduce using rule 70 (ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON -> .)
+    or              reduce using rule 70 (ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON -> .)
     closeParentheses reduce using rule 70 (ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON -> .)
 
     ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON shift and go to state 110
@@ -1635,8 +1664,8 @@ state 91
     (29) COMPARISON -> not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON .
 
     and             reduce using rule 29 (COMPARISON -> not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON .)
-    or              reduce using rule 29 (COMPARISON -> not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON .)
     then            reduce using rule 29 (COMPARISON -> not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON .)
+    or              reduce using rule 29 (COMPARISON -> not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON .)
     closeParentheses reduce using rule 29 (COMPARISON -> not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON .)
 
 
@@ -1779,10 +1808,10 @@ state 102
 state 103
 
     (19) ELIF -> elif . LOGEXP then STATEMENTS ELIF
-    (23) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP
-    (24) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
-    (25) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP
-    (26) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (23) LOGEXP -> . LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
+    (24) LOGEXP -> . ANDEXP
+    (25) ANDEXP -> . ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (26) ANDEXP -> . COMPARISON
     (27) COMPARISON -> . openParentheses LOGEXP closeParentheses
     (28) COMPARISON -> . VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON
     (29) COMPARISON -> . not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
@@ -1808,60 +1837,31 @@ state 103
 
 state 104
 
-    (23) LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP . LOGEXP
-    (23) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP
-    (24) LOGEXP -> . ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
-    (25) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP
-    (26) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
-    (27) COMPARISON -> . openParentheses LOGEXP closeParentheses
-    (28) COMPARISON -> . VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON
-    (29) COMPARISON -> . not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
-    (50) VALUE -> . VAL
-    (51) VALUE -> . openParentheses ARITEXP closeParentheses
-    (52) VAL -> . VAR ACTION_VAR_VAL
-    (53) VAL -> . int ACTION_INT_VAL
-    (54) VAL -> . real ACTION_REAL_VAL
-    (55) VAR -> . id ARRAY
+    (23) LOGEXP -> LOGEXP or ACTION_OR_LOGEXP ANDEXP . ACTION_CREATE_QUADRUPLE_LOGEXP
+    (25) ANDEXP -> ANDEXP . and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (68) ACTION_CREATE_QUADRUPLE_LOGEXP -> .
 
-    openParentheses shift and go to state 28
-    not             shift and go to state 30
-    int             shift and go to state 33
-    real            shift and go to state 34
-    id              shift and go to state 11
+  ! shift/reduce conflict for and resolved as shift
+    and             shift and go to state 50
+    then            reduce using rule 68 (ACTION_CREATE_QUADRUPLE_LOGEXP -> .)
+    or              reduce using rule 68 (ACTION_CREATE_QUADRUPLE_LOGEXP -> .)
+    closeParentheses reduce using rule 68 (ACTION_CREATE_QUADRUPLE_LOGEXP -> .)
 
-    ANDEXP                         shift and go to state 26
-    LOGEXP                         shift and go to state 121
-    COMPARISON                     shift and go to state 27
-    VALUE                          shift and go to state 29
-    VAL                            shift and go to state 31
-    VAR                            shift and go to state 32
+  ! and             [ reduce using rule 68 (ACTION_CREATE_QUADRUPLE_LOGEXP -> .) ]
+
+    ACTION_CREATE_QUADRUPLE_LOGEXP shift and go to state 121
 
 state 105
 
-    (25) ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP . ANDEXP
-    (25) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP
-    (26) ANDEXP -> . COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP
-    (27) COMPARISON -> . openParentheses LOGEXP closeParentheses
-    (28) COMPARISON -> . VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON
-    (29) COMPARISON -> . not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
-    (50) VALUE -> . VAL
-    (51) VALUE -> . openParentheses ARITEXP closeParentheses
-    (52) VAL -> . VAR ACTION_VAR_VAL
-    (53) VAL -> . int ACTION_INT_VAL
-    (54) VAL -> . real ACTION_REAL_VAL
-    (55) VAR -> . id ARRAY
+    (25) ANDEXP -> ANDEXP and ACTION_AND_ANDEXP COMPARISON . ACTION_GENERATE_QUADRUPLE_ANDEXP
+    (69) ACTION_GENERATE_QUADRUPLE_ANDEXP -> .
 
-    openParentheses shift and go to state 28
-    not             shift and go to state 30
-    int             shift and go to state 33
-    real            shift and go to state 34
-    id              shift and go to state 11
+    and             reduce using rule 69 (ACTION_GENERATE_QUADRUPLE_ANDEXP -> .)
+    then            reduce using rule 69 (ACTION_GENERATE_QUADRUPLE_ANDEXP -> .)
+    or              reduce using rule 69 (ACTION_GENERATE_QUADRUPLE_ANDEXP -> .)
+    closeParentheses reduce using rule 69 (ACTION_GENERATE_QUADRUPLE_ANDEXP -> .)
 
-    COMPARISON                     shift and go to state 27
-    ANDEXP                         shift and go to state 122
-    VALUE                          shift and go to state 29
-    VAL                            shift and go to state 31
-    VAR                            shift and go to state 32
+    ACTION_GENERATE_QUADRUPLE_ANDEXP shift and go to state 122
 
 state 106
 
@@ -1952,8 +1952,8 @@ state 110
     (28) COMPARISON -> VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON .
 
     and             reduce using rule 28 (COMPARISON -> VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON .)
-    or              reduce using rule 28 (COMPARISON -> VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON .)
     then            reduce using rule 28 (COMPARISON -> VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON .)
+    or              reduce using rule 28 (COMPARISON -> VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON .)
     closeParentheses reduce using rule 28 (COMPARISON -> VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON .)
 
 
@@ -2068,28 +2068,30 @@ state 119
 state 120
 
     (19) ELIF -> elif LOGEXP . then STATEMENTS ELIF
+    (23) LOGEXP -> LOGEXP . or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP
 
     then            shift and go to state 131
+    or              shift and go to state 49
 
 
 state 121
 
-    (23) LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP .
+    (23) LOGEXP -> LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .
 
-    then            reduce using rule 23 (LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP .)
-    closeParentheses reduce using rule 23 (LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP .)
-    and             reduce using rule 23 (LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP .)
-    or              reduce using rule 23 (LOGEXP -> ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP or ACTION_OR_LOGEXP LOGEXP .)
+    then            reduce using rule 23 (LOGEXP -> LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .)
+    or              reduce using rule 23 (LOGEXP -> LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .)
+    closeParentheses reduce using rule 23 (LOGEXP -> LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .)
+    and             reduce using rule 23 (LOGEXP -> LOGEXP or ACTION_OR_LOGEXP ANDEXP ACTION_CREATE_QUADRUPLE_LOGEXP .)
 
 
 state 122
 
-    (25) ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP .
+    (25) ANDEXP -> ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .
 
-    or              reduce using rule 25 (ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP .)
-    then            reduce using rule 25 (ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP .)
-    closeParentheses reduce using rule 25 (ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP .)
-    and             reduce using rule 25 (ANDEXP -> COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP and ACTION_AND_ANDEXP ANDEXP .)
+    and             reduce using rule 25 (ANDEXP -> ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .)
+    then            reduce using rule 25 (ANDEXP -> ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .)
+    or              reduce using rule 25 (ANDEXP -> ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .)
+    closeParentheses reduce using rule 25 (ANDEXP -> ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP .)
 
 
 state 123
@@ -2228,8 +2230,8 @@ state 128
     elif            reduce using rule 6 (ARRAY -> openBracket int closeBracket openBracket int closeBracket .)
     else            reduce using rule 6 (ARRAY -> openBracket int closeBracket openBracket int closeBracket .)
     and             reduce using rule 6 (ARRAY -> openBracket int closeBracket openBracket int closeBracket .)
-    or              reduce using rule 6 (ARRAY -> openBracket int closeBracket openBracket int closeBracket .)
     then            reduce using rule 6 (ARRAY -> openBracket int closeBracket openBracket int closeBracket .)
+    or              reduce using rule 6 (ARRAY -> openBracket int closeBracket openBracket int closeBracket .)
 
 
 state 129
@@ -2431,5 +2433,6 @@ state 141
 WARNING: 
 WARNING: Conflicts:
 WARNING: 
-WARNING: shift/reduce conflict for or in state 49 resolved as shift
-WARNING: shift/reduce conflict for and in state 50 resolved as shift
+WARNING: shift/reduce conflict for and in state 26 resolved as shift
+WARNING: shift/reduce conflict for or in state 62 resolved as shift
+WARNING: shift/reduce conflict for and in state 104 resolved as shift
