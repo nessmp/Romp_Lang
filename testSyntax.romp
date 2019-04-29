@@ -15,7 +15,7 @@ if num < 5 and num >= 0 then
     write array[num]
 end if
 
-do
+do then
     read array[num]
     num = num + 1
     if num == 5 then
@@ -23,7 +23,7 @@ do
     end if
 end do
 
-do i = 0, 5
+do i = 0, i < 5 then
     write array[i]
 end do
 
