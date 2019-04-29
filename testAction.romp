@@ -1,7 +1,16 @@
 program testAction
 integer i;
+integer j;
+integer ii;
+integer jj;
 
-do i = 0, 10
+do then
+    i = i + 1
+    if i > 5 then
+        exit
+    elif j == 10 then
+        exit
+    end if
 end do
 
 end program
