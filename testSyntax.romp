@@ -1,0 +1,32 @@
+program test
+integer num;
+real array[5];
+integer matrix[9][10];
+integer i;
+
+subroutine ifTest
+    if 8 == num then
+        num = num + 2
+    end if
+end subroutine
+
+read num
+if num < 5 and num >= 0 then
+    write array[num]
+end if
+
+do
+    read array[num]
+    num = num + 1
+    if num == 5 then
+        exit
+    end if
+end do
+
+do i = 0, 5
+    write array[i]
+end do
+
+call ifTest
+
+end program
