@@ -12,7 +12,8 @@ operatorsStack = []
 typesStack = []
 jumpsStack = []
 ifsStack = []
-exitStack = []
+dosStack = []
+exitsStack = []
 available = []
 
 def peek(list):
@@ -183,15 +184,21 @@ def p_subroutines(p):
 def p_statements(p):
     '''
     STATEMENTS : if LOGEXP ACTION_QUADRUPLE_EMPTY_JUMP then STATEMENTS ACTION_NEW_IF ACTION_QUADRUPLE_GOTO_ENDIF ELIF ELSE end if ACTION_FILL_GOTO_ENDIF STATEMENTS
-               | do STATEMENTS end do STATEMENTS
-               | do id equal ARITEXP ACTION_QUADRUPLET_SET coma ARITEXP ACTION_QUADRUPLE_DO_LIMIT STATEMENTS end do STATEMENTS
+               | DO
                | VAR equal ARITEXP ACTION_QUADRUPLET_SET STATEMENTS
                | call id STATEMENTS
                | read READVAR STATEMENTS
                | write WRITEVAR STATEMENTS
-               | exit STATEMENTS
+               | exit ACTION_QUADRUPLE_EXITSSTACK STATEMENTS
                |
     '''
+
+def p_(p):
+    '''
+    DO : do ACTION_PUSH_FLAG_EXITSSTACK then STATEMENTS end do ACTION_FILL_EXITS_JUMPS STATEMENTS
+       | do id equal ARITEXP ACTION_QUADRUPLET_SET coma LOGEXP ACTION_DO_LOGEXP ACTION_QUADRUPLE_EMPTY_JUMP then STATEMENTS ACTION_QUADRUPLE_ADD_TO_COUNTER ACTION_GOTO_DO end do ACTION_FILL_JUMP STATEMENTS
+    '''
+
 def p_elif(p):
     '''
     ELIF : elif ACTION_FILL_JUMP LOGEXP ACTION_QUADRUPLE_EMPTY_JUMP then STATEMENTS ACTION_QUADRUPLE_GOTO_ENDIF ELIF
@@ -399,7 +406,7 @@ def p_action_quadruple_not_comparison(p):
     valueType = typesStack.pop()
     isBool(valueType)
     temp = available.pop(0)
-    quadruplets.append(str("not") + ' ' + str(value) + ' ' + str(temp) +'\n')
+    quadruplets.append("not " + str(value) + ' ' + str(temp) +'\n')
     global quadrupletIndex
     quadrupletIndex += 1
 
@@ -408,7 +415,7 @@ def p_action_quadruple_empty_jump(p):
     global quadrupletIndex
     value = quadruplets[quadrupletIndex - 2].split()
     # print("ACTION_QUADRUPLE_EMPTY_JUMP", value[len(value) - 1])
-    quadruplets.append(str("gotoF") + ' ' + str(value[len(value) - 1]) + ' ')
+    quadruplets.append("gotoF " + str(value[len(value) - 1]) + ' ')
     jumpsStack.append(quadrupletIndex)
     quadrupletIndex += 1
 
@@ -426,7 +433,7 @@ def p_action_quadruple_goto_endif(p):
     global quadrupletIndex
     ifsStack[len(ifsStack) - 1].append(quadrupletIndex)
     # print(ifsStack)
-    quadruplets.append(str("goto") + ' ')
+    quadruplets.append("goto ")
     quadrupletIndex += 1
 
 def p_new_if(p):
@@ -439,9 +446,39 @@ def p_action_fill_goto_endif(p):
         fillJump(goto - 1, quadrupletIndex)
     ifsStack.pop()
 
-def p_action_quadruple_do_limit(p):
-    "ACTION_QUADRUPLE_DO_LIMIT :"
-    
+def p_action_do_logexp(p):
+    "ACTION_DO_LOGEXP :"
+    dosStack.append(quadrupletIndex - 1)
+
+def p_action_goto_do(p):
+    "ACTION_GOTO_DO :"
+    quadruplets.append("goto" + ' ' + str(dosStack.pop()))
+    global quadrupletIndex
+    quadrupletIndex += 1
+
+def p_action_quadruple_add_to_counter(p):
+    "ACTION_QUADRUPLE_ADD_TO_COUNTER :"
+    quadruplets.append("+ 1 " + str(symbols[p[-10]]["direction"]) + ' ' + str(symbols[p[-10]]["direction"]))
+    global quadrupletIndex
+    quadrupletIndex += 1
+
+def p_action_push_flag_exitsstack(p):
+    "ACTION_PUSH_FLAG_EXITSSTACK :"
+    exitsStack.append('-')
+
+def p_action_quadruple_exitsstack(p):
+    "ACTION_QUADRUPLE_EXITSSTACK :"
+    quadruplets.append("goto ")
+    global quadrupletIndex
+    exitsStack.append(quadrupletIndex)
+    quadrupletIndex += 1
+
+def p_action_fill_exits_jumps(p):
+    "ACTION_FILL_EXITS_JUMPS :"
+    index = exitsStack.pop()
+    while index != '-':
+        fillJump(index - 1, quadrupletIndex)
+        index = exitsStack.pop()
 
 def p_error(p):
     raise Exception(f'Wrong Syntax {p}')
