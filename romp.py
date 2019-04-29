@@ -11,6 +11,7 @@ operandsStack = []
 operatorsStack = []
 typesStack = []
 jumpsStack = []
+ifsStack = []
 exitStack = []
 available = []
 
@@ -168,6 +169,8 @@ def p_array(p):
     '''
     ARRAY : openBracket int closeBracket openBracket int closeBracket
           | openBracket int closeBracket
+          | openBracket id closeBracket openBracket id closeBracket
+          | openBracket id closeBracket
           |
     '''
 
@@ -179,25 +182,26 @@ def p_subroutines(p):
 
 def p_statements(p):
     '''
-    STATEMENTS : if LOGEXP then STATEMENTS ELIF ELSE end if
-               | do id equal ARITEXP semicolon STATEMENTS end do STATEMENTS
-               | VAR equal ARITEXP ACTION_GENERATE_QUADRUPLET_SET STATEMENTS
-               | call id semicolon STATEMENTS
-               | read READVAR semicolon STATEMENTS
-               | write WRITEVAR semicolon STATEMENTS
+    STATEMENTS : if LOGEXP ACTION_QUADRUPLE_EMPTY_JUMP then STATEMENTS ACTION_NEW_IF ACTION_QUADRUPLE_GOTO_ENDIF ELIF ELSE end if ACTION_FILL_GOTO_ENDIF STATEMENTS
+               | do STATEMENTS end do STATEMENTS
+               | do id equal ARITEXP ACTION_QUADRUPLET_SET coma ARITEXP ACTION_QUADRUPLE_DO_LIMIT STATEMENTS end do STATEMENTS
+               | VAR equal ARITEXP ACTION_QUADRUPLET_SET STATEMENTS
+               | call id STATEMENTS
+               | read READVAR STATEMENTS
+               | write WRITEVAR STATEMENTS
                | exit STATEMENTS
                |
     '''
 def p_elif(p):
     '''
-    ELIF : elif LOGEXP then STATEMENTS ELIF
+    ELIF : elif ACTION_FILL_JUMP LOGEXP ACTION_QUADRUPLE_EMPTY_JUMP then STATEMENTS ACTION_QUADRUPLE_GOTO_ENDIF ELIF
          |
     '''
 
 def p_else(p):
     '''
-    ELSE : else STATEMENTS
-         |
+    ELSE : else ACTION_FILL_JUMP STATEMENTS ACTION_QUADRUPLE_GOTO_ENDIF
+         | ACTION_FILL_JUMP
     '''
 
 def p_logexp(p):
@@ -208,15 +212,15 @@ def p_logexp(p):
 
 def p_andexp(p):
     '''
-    ANDEXP : ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_GENERATE_QUADRUPLE_ANDEXP 
+    ANDEXP : ANDEXP and ACTION_AND_ANDEXP COMPARISON ACTION_QUADRUPLE_ANDEXP 
            | COMPARISON
     '''
 
 def p_comparison(p):
     '''
     COMPARISON : openParentheses LOGEXP closeParentheses
-               | VALUE COMP VALUE ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON
-               | not LOGEXP ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON
+               | VALUE COMP VALUE ACTION_QUADRUPLE_COMP_COMPARISON
+               | not LOGEXP ACTION_QUADRUPLE_NOT_COMPARISON
     '''
 
 def p_comp(p):
@@ -259,15 +263,15 @@ def p_writev(p):
 def p_aritexp(p):
     '''
     ARITEXP : MULDIV
-            | ARITEXP plusSign ACTION_PLUSSIGN_ARITEXP MULDIV ACTION_GENERATE_QUADRUPLET_ARITEXP
-            | ARITEXP minusSign ACTION_MINUSSIGN_ARITEXP MULDIV ACTION_GENERATE_QUADRUPLET_ARITEXP
+            | ARITEXP plusSign ACTION_PLUSSIGN_ARITEXP MULDIV ACTION_QUADRUPLET_ARITEXP
+            | ARITEXP minusSign ACTION_MINUSSIGN_ARITEXP MULDIV ACTION_QUADRUPLET_ARITEXP
     '''
 
 def p_muldiv(p):
     '''
     MULDIV : VALUE
-           | MULDIV multSign ACTION_MULTSIGN_MULDIV VALUE ACTION_GENERATE_QUADRUPLET_MULDIV
-           | MULDIV divSign ACTION_DIVSIGN_MULDIV VALUE ACTION_GENERATE_QUADRUPLET_MULDIV
+           | MULDIV multSign ACTION_MULTSIGN_MULDIV VALUE ACTION_QUADRUPLET_MULDIV
+           | MULDIV divSign ACTION_DIVSIGN_MULDIV VALUE ACTION_QUADRUPLET_MULDIV
     '''
     p[0] = p[1]
 
@@ -318,8 +322,8 @@ def p_action_minussign_aritexp(p):
     operatorsStack.append(p[-1])
 
 
-def p_action_generate_quadruplet_set(p):
-    "ACTION_GENERATE_QUADRUPLET_SET :"
+def p_action_quadruplet_set(p):
+    "ACTION_QUADRUPLET_SET :"
     operator = p[-2]
     variable = p[-3]
     variableType = symbols[variable]["type"]
@@ -328,6 +332,8 @@ def p_action_generate_quadruplet_set(p):
     valueType = typesStack.pop()
     validType(operator, variableType, valueType)
     quadruplets.append(str(operator) + ' ' + str(value) + ' ' + str(variableDirection) + '\n')
+    global quadrupletIndex
+    quadrupletIndex += 1
 
 def p_action_multsign_muldiv(p):
     "ACTION_MULTSIGN_MULDIV :"
@@ -346,17 +352,19 @@ def addQuadruplet():
     typesStack.append(validType(operator, leftOperandType, rightOperandType))
     temp = available.pop(0)
     quadruplets.append(str(operator) + ' ' + str(leftOperand) + ' ' + str(rightOperand) + ' ' + str(temp) + '\n')
+    global quadrupletIndex
+    quadrupletIndex += 1
     operandsStack.append(temp)
 
-def p_action_generate_quadruplet_aritexp(p):
-    "ACTION_GENERATE_QUADRUPLET_ARITEXP :"
+def p_action_quadruplet_aritexp(p):
+    "ACTION_QUADRUPLET_ARITEXP :"
     operator = peek(operatorsStack) 
     # print("quadruplet aritexpt operator list", operatorsStack)
     if operator == "+" or operator == "-":
         addQuadruplet()
 
-def p_action_generate_quadruplet_muldiv(p):
-    "ACTION_GENERATE_QUADRUPLET_MULDIV :"
+def p_action_quadruplet_muldiv(p):
+    "ACTION_QUADRUPLET_MULDIV :"
     operator = peek(operatorsStack) 
     if operator == "*" or operator == "/":
         addQuadruplet()     
@@ -375,23 +383,65 @@ def p_action_create_quadruple_logexp(p):
     if operator == "or":
         addQuadruplet()
 
-def p_action_generate_quadruple_andexp(p):
-    "ACTION_GENERATE_QUADRUPLE_ANDEXP :"
+def p_action_quadruple_andexp(p):
+    "ACTION_QUADRUPLE_ANDEXP :"
     operator = peek(operatorsStack)
     if operator == "and":
         addQuadruplet()
 
-def p_action_generate_quadruple_comp_comparison(p):
-    "ACTION_GENERATE_QUADRUPLE_COMP_COMPARISON :"
+def p_action_quadruple_comp_comparison(p):
+    "ACTION_QUADRUPLE_COMP_COMPARISON :"
     addQuadruplet()
 
-def p_action_generate_quadruple_not_comparison(p):
-    "ACTION_GENERATE_QUADRUPLE_NOT_COMPARISON :"
+def p_action_quadruple_not_comparison(p):
+    "ACTION_QUADRUPLE_NOT_COMPARISON :"
     value = operandsStack.pop()
     valueType = typesStack.pop()
     isBool(valueType)
     temp = available.pop(0)
     quadruplets.append(str("not") + ' ' + str(value) + ' ' + str(temp) +'\n')
+    global quadrupletIndex
+    quadrupletIndex += 1
+
+def p_action_quadruple_empty_jump(p):
+    "ACTION_QUADRUPLE_EMPTY_JUMP :"
+    global quadrupletIndex
+    value = quadruplets[quadrupletIndex - 2].split()
+    # print("ACTION_QUADRUPLE_EMPTY_JUMP", value[len(value) - 1])
+    quadruplets.append(str("gotoF") + ' ' + str(value[len(value) - 1]) + ' ')
+    jumpsStack.append(quadrupletIndex)
+    quadrupletIndex += 1
+
+def fillJump(quadrupletsIndex, goto):
+    # print("fillJump", quadrupletsIndex, goto)
+    quadruplets[quadrupletsIndex] = quadruplets[quadrupletsIndex] + str(goto) + '\n'
+
+def p_action_fill_jump(p):
+    "ACTION_FILL_JUMP :"
+    # print("jumpsStack", jumpsStack)
+    fillJump(jumpsStack.pop()- 1, quadrupletIndex)
+
+def p_action_quadruple_goto_endif(p):
+    "ACTION_QUADRUPLE_GOTO_ENDIF :"
+    global quadrupletIndex
+    ifsStack[len(ifsStack) - 1].append(quadrupletIndex)
+    # print(ifsStack)
+    quadruplets.append(str("goto") + ' ')
+    quadrupletIndex += 1
+
+def p_new_if(p):
+    "ACTION_NEW_IF :"
+    ifsStack.append([])
+
+def p_action_fill_goto_endif(p):
+    "ACTION_FILL_GOTO_ENDIF :"
+    for goto in ifsStack[len(ifsStack) - 1]:
+        fillJump(goto - 1, quadrupletIndex)
+    ifsStack.pop()
+
+def p_action_quadruple_do_limit(p):
+    "ACTION_QUADRUPLE_DO_LIMIT :"
+    
 
 def p_error(p):
     raise Exception(f'Wrong Syntax {p}')
@@ -406,8 +456,10 @@ if (len(sys.argv) > 1):
     program = programFile.read().replace('\\n', '\n')
     parser.parse(program)
     programFile.close()
+    i = 1
     for quadruplet in quadruplets:
-        print(quadruplet.replace("\n", ""))
+        print(i, "\t", quadruplet.replace("\n", ""))
+        i += 1
 else:
     raise Exception('''
     No file name was provided.
