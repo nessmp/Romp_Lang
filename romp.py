@@ -24,17 +24,9 @@ def peek(list):
 for i in range(NUM_TEMP_VARIABLES):
     available.append('#' + str(i))
 
-currentIndex = NUM_TEMP_VARIABLES
+symbolsTableIndex = NUM_TEMP_VARIABLES
 
 symbols = {}
-def addSymbol(name, type):
-    global currentIndex
-    symbols[name] = {
-        "type" : type,
-        "value" : 0 if type == 'integer' else 0.0,
-        "direction" : "#" + str(currentIndex)
-        }
-    currentIndex += 1
 
 tokens = [
     'id',
@@ -75,7 +67,6 @@ tokens = [
     'or',
     'and',
     'not',
-
 ]
 
 reserved = {
@@ -151,13 +142,33 @@ def p_P(p):
     P : program id VARIABLES SUBROUTINES STATEMENTS end program
     ''' 
 
+def addSymbol(name, type, dimensions):
+    global symbolsTableIndex
+    symbols[name] = {
+        "type" : type,
+        "value" : 0 if type == 'integer' else 0.0,
+        "direction" : "#" + str(symbolsTableIndex)
+        }
+    if dimensions != None:
+        if isinstance(dimensions, int):
+            symbols[name]["rows"] = dimensions
+            symbols[name]["reserved"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions)
+            symbolsTableIndex += dimensions
+        elif len(dimensions) == 2:
+            symbols[name]["rows"] = dimensions[0]
+            symbols[name]["columns"] = dimensions[1]
+            symbols[name]["reserved"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions[0] * dimensions[1])
+            symbolsTableIndex += dimensions[0] * dimensions[1]
+    else:
+        symbolsTableIndex += 1
+
 def p_variables(p):
     '''
     VARIABLES : TYPE id ARRAY semicolon VARIABLES
               | 
     '''
     if len(p) == 6:
-        addSymbol(p[2], p[1])
+        addSymbol(p[2], p[1], p[3])
 
 def p_type(p):
     '''
@@ -174,6 +185,10 @@ def p_array(p):
           | openBracket id closeBracket
           |
     '''
+    if len(p) == 7:
+        p[0] = [p[2], p[5]]
+    elif len(p) == 4:
+        p[0] = p[2]
 
 def p_subroutines(p):
     '''
@@ -297,14 +312,21 @@ def p_val(p):
 
 def p_var(p):
     '''
-    VAR : id ARRAY
+    VAR : id ARRAY ACTION_QUADRUPLE_ARRAY
     '''
-    p[0] = p[1]
+    if p[2] == None:
+        p[0] = p[1]
+    else:
+        p[0] = [p[1], p[3]]
 
 def p_action_var_val(p):
     "ACTION_VAR_VAL :"
-    operandsStack.append(symbols[p[-1]]["direction"])
-    typesStack.append(symbols[p[-1]]["type"])
+    if isinstance(p[-1], list):
+        operandsStack.append("*" + symbols[p[-1][0]]["direction"][1:])
+        typesStack.append(symbols[p[-1][0]]["type"])
+    else:
+        operandsStack.append(symbols[p[-1]]["direction"])
+        typesStack.append(symbols[p[-1]]["type"])
 
 def p_action_int_val(p):
     "ACTION_INT_VAL :"
@@ -333,8 +355,14 @@ def p_action_quadruplet_set(p):
     "ACTION_QUADRUPLET_SET :"
     operator = p[-2]
     variable = p[-3]
-    variableType = symbols[variable]["type"]
-    variableDirection = symbols[variable]["direction"]
+    variableType = ""
+    variableDirection = ""
+    if isinstance(variable, list):
+        variableType = symbols[variable[0]]["type"]
+        variableDirection = "*" + variable[1][1:]
+    else:
+        variableType = symbols[variable]["type"]
+        variableDirection = symbols[variable]["direction"]
     value = operandsStack.pop()
     valueType = typesStack.pop()
     validType(operator, variableType, valueType)
@@ -479,6 +507,24 @@ def p_action_fill_exits_jumps(p):
     while index != '-':
         fillJump(index - 1, quadrupletIndex)
         index = exitsStack.pop()
+
+def p_action_quadruple_array(p):
+    "ACTION_QUADRUPLE_ARRAY :"
+    global quadrupletIndex
+    if p[-1] != None:
+        if "reserved" not in symbols[p[-2]] or (isinstance(p[-1], int) and "columns" in symbols[p[-2]]):
+            raise Exception(f"{p[-3]} is not an array or matrix")
+        if isinstance(p[-1], int):
+            quadruplets.append("+ " + str(symbols[p[-2]]["direction"][1:]) + " " + str(p[-1]) + " " + str(symbols[p[-2]]["reserved"]))
+            quadrupletIndex += 1
+            p[0] = str(symbols[p[-2]]["reserved"])
+        else:
+            quadruplets.append("* " + str(p[-1][0]) + " " + str(symbols[p[-2]]["columns"]) + " " + str(symbols[p[-2]]["reserved"]))
+            quadruplets.append("+ " + str(p[-1][1]) + " " + str(symbols[p[-2]]["reserved"]) + " " + str(symbols[p[-2]]["reserved"]))
+            quadruplets.append("+ " + str(symbols[p[-2]]["direction"][1:]) + " " + str(symbols[p[-2]]["reserved"]) + " " + str(symbols[p[-2]]["reserved"]))
+            quadrupletIndex += 3
+            p[0] = str(symbols[p[-2]]["reserved"])
+
 
 def p_error(p):
     raise Exception(f'Wrong Syntax {p}')
