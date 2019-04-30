@@ -1,16 +1,8 @@
 program testAction
-integer i;
-integer j;
-integer ii;
-integer jj;
+integer num;
+integer i[3][3];
+integer j[5][5];
 
-do then
-    i = i + 1
-    if i > 5 then
-        exit
-    elif j == 10 then
-        exit
-    end if
-end do
+i[1][2] = i[2][1]
 
 end program
