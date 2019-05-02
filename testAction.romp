@@ -1,8 +1,9 @@
 program testAction
-integer num;
-integer i[3][3];
-integer j[5][5];
+integer i;
+integer j;
+integer nums[5][5];
 
-i[1][2] = i[2][1]
+read i, nums[0][1]
+write 'hola', nums[1][1], i
 
 end program
