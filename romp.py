@@ -14,6 +14,7 @@ jumpsStack = []
 ifsStack = []
 dosStack = []
 exitsStack = []
+readWriteVars = []
 available = []
 
 def peek(list):
@@ -139,28 +140,35 @@ lexer = lex.lex()
 
 def p_P(p):
     '''
-    P : program id VARIABLES SUBROUTINES STATEMENTS end program
+    P : program id VARIABLES ACTION_QUADRUPLE_GOTOMAIN SUBROUTINES ACTION_FILL_GOTO_MAIN STATEMENTS end program
     ''' 
 
 def addSymbol(name, type, dimensions):
     global symbolsTableIndex
-    symbols[name] = {
-        "type" : type,
-        "value" : 0 if type == 'integer' else 0.0,
-        "direction" : "#" + str(symbolsTableIndex)
+    if name in symbols:
+        raise Exception(f'{name} already declared')
+    if type == "subroutine":
+        symbols[name] = {
+            "startDirection" : quadrupletIndex
         }
-    if dimensions != None:
-        if isinstance(dimensions, int):
-            symbols[name]["rows"] = dimensions
-            symbols[name]["reserved"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions)
-            symbolsTableIndex += dimensions
-        elif len(dimensions) == 2:
-            symbols[name]["rows"] = dimensions[0]
-            symbols[name]["columns"] = dimensions[1]
-            symbols[name]["reserved"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions[0] * dimensions[1])
-            symbolsTableIndex += dimensions[0] * dimensions[1]
     else:
-        symbolsTableIndex += 1
+        symbols[name] = {
+            "type" : type,
+            "value" : 0 if type == 'integer' else 0.0,
+            "direction" : "#" + str(symbolsTableIndex)
+            }
+        if dimensions != None:
+            if isinstance(dimensions, int):
+                symbols[name]["rows"] = dimensions
+                symbols[name]["reserved"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions)
+                symbolsTableIndex += dimensions
+            elif len(dimensions) == 2:
+                symbols[name]["rows"] = dimensions[0]
+                symbols[name]["columns"] = dimensions[1]
+                symbols[name]["reserved"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions[0] * dimensions[1])
+                symbolsTableIndex += dimensions[0] * dimensions[1]
+        else:
+            symbolsTableIndex += 1
 
 def p_variables(p):
     '''
@@ -192,7 +200,7 @@ def p_array(p):
 
 def p_subroutines(p):
     '''
-    SUBROUTINES : subroutine id STATEMENTS end subroutine SUBROUTINES
+    SUBROUTINES : subroutine id ACTION_ADD_TO_TABLE STATEMENTS ACTION_QUADRUPLE_GOBACK end subroutine SUBROUTINES
                 |
     '''
 
@@ -201,17 +209,17 @@ def p_statements(p):
     STATEMENTS : if LOGEXP ACTION_QUADRUPLE_EMPTY_JUMP then STATEMENTS ACTION_NEW_IF ACTION_QUADRUPLE_GOTO_ENDIF ELIF ELSE end if ACTION_FILL_GOTO_ENDIF STATEMENTS
                | DO
                | VAR equal ARITEXP ACTION_QUADRUPLET_SET STATEMENTS
-               | call id STATEMENTS
-               | read READVAR STATEMENTS
-               | write WRITEVAR STATEMENTS
+               | call id ACTION_QUADRUPLE_CALL STATEMENTS
+               | read READVAR ACTION_QUADRUPLE_READ STATEMENTS
+               | write WRITEVAR ACTION_QUADRUPLE_WRITE STATEMENTS
                | exit ACTION_QUADRUPLE_EXITSSTACK STATEMENTS
                |
     '''
 
 def p_(p):
     '''
-    DO : do ACTION_PUSH_FLAG_EXITSSTACK then STATEMENTS end do ACTION_FILL_EXITS_JUMPS STATEMENTS
-       | do id equal ARITEXP ACTION_QUADRUPLET_SET coma LOGEXP ACTION_DO_LOGEXP ACTION_QUADRUPLE_EMPTY_JUMP then STATEMENTS ACTION_QUADRUPLE_ADD_TO_COUNTER ACTION_GOTO_DO end do ACTION_FILL_JUMP STATEMENTS
+    DO : do ACTION_PUSH_FLAG_EXITSSTACK then ACTION_PUSH_DOSSTACK STATEMENTS ACTION_GOTO_DO end do ACTION_FILL_EXITS_JUMPS STATEMENTS
+       | do id equal ARITEXP ACTION_QUADRUPLET_SET coma ACTION_PUSH_DOSSTACK LOGEXP ACTION_QUADRUPLE_EMPTY_JUMP then STATEMENTS ACTION_QUADRUPLE_ADD_TO_COUNTER ACTION_GOTO_DO end do ACTION_FILL_JUMP STATEMENTS
     '''
 
 def p_elif(p):
@@ -261,18 +269,22 @@ def p_readvar(p):
     '''
     READVAR : VAR READV
     '''
+    readWriteVars.append(p[1])
 
 def p_readv(p):
     '''
     READV : coma VAR READV
           |
     '''
+    if len(p) == 4:
+        readWriteVars.append(p[2])
 
 def p_writevar(p):
     '''
     WRITEVAR : VAR WRITEV
              | string WRITEV
     '''
+    readWriteVars.append(p[1])
 
 def p_writev(p):
     '''
@@ -280,7 +292,8 @@ def p_writev(p):
            | coma string WRITEV
            |
     '''
-
+    if len(p) == 4:
+        readWriteVars.append(p[2])
 
 def p_aritexp(p):
     '''
@@ -322,7 +335,8 @@ def p_var(p):
 def p_action_var_val(p):
     "ACTION_VAR_VAL :"
     if isinstance(p[-1], list):
-        operandsStack.append("*" + symbols[p[-1][0]]["direction"][1:])
+        # print(p[-1])
+        operandsStack.append("*" + p[-1][1][1:])
         typesStack.append(symbols[p[-1][0]]["type"])
     else:
         operandsStack.append(symbols[p[-1]]["direction"])
@@ -365,6 +379,7 @@ def p_action_quadruplet_set(p):
         variableDirection = symbols[variable]["direction"]
     value = operandsStack.pop()
     valueType = typesStack.pop()
+    # print(p[-1])
     validType(operator, variableType, valueType)
     quadruplets.append(str(operator) + ' ' + str(value) + ' ' + str(variableDirection) + '\n')
     global quadrupletIndex
@@ -474,9 +489,9 @@ def p_action_fill_goto_endif(p):
         fillJump(goto - 1, quadrupletIndex)
     ifsStack.pop()
 
-def p_action_do_logexp(p):
-    "ACTION_DO_LOGEXP :"
-    dosStack.append(quadrupletIndex - 1)
+def p_action_push_dosstack(p):
+    "ACTION_PUSH_DOSSTACK :"
+    dosStack.append(quadrupletIndex)
 
 def p_action_goto_do(p):
     "ACTION_GOTO_DO :"
@@ -525,6 +540,64 @@ def p_action_quadruple_array(p):
             quadrupletIndex += 3
             p[0] = str(symbols[p[-2]]["reserved"])
 
+def p_action_quadruple_gotomain(p):
+    "ACTION_QUADRUPLE_GOTOMAIN :"
+    quadruplets.append("goto " )
+    global quadrupletIndex
+    p[0] = quadrupletIndex
+    quadrupletIndex += 1
+
+def p_action_fill_gotomain(p):
+    "ACTION_FILL_GOTO_MAIN :"
+    quadruplets[p[-2] - 1] += str(quadrupletIndex)
+
+def p_action_add_to_table(p):
+    "ACTION_ADD_TO_TABLE :"
+    addSymbol(p[-1], "subroutine", None)
+
+def p_action_quadruple_call(p):
+    "ACTION_QUADRUPLE_CALL :"
+    if p[-1] not in symbols:
+        raise Exception(f"subroutine {p[-1]} not declared")
+    quadruplets.append("call " + str(symbols[p[-1]]["startDirection"]))
+    global quadrupletIndex
+    quadrupletIndex += 1
+
+def p_action_quadruple_goback(p):
+    "ACTION_QUADRUPLE_GOBACK :"
+    quadruplets.append("goback ")
+    global quadrupletIndex
+    quadrupletIndex += 1
+
+def p_action_quadruple_read(p):
+    "ACTION_QUADRUPLE_READ :"
+    vars = ""
+    global readWriteVars
+    for var in readWriteVars:
+        if isinstance(var, list):
+            vars = "*"  + var[1][1:] + " " + vars
+        else:
+            vars = var + " " + vars
+
+    quadruplets.append("read " + vars)
+    global quadrupletIndex
+    quadrupletIndex += 1
+    readWriteVars = []
+
+def p_action_quadruple_write(p):
+    "ACTION_QUADRUPLE_WRITE :"
+    vars = ""
+    global readWriteVars
+    for var in readWriteVars:
+        if isinstance(var, list):
+            vars = "*"  + var[1][1:] + " " + vars
+        else:
+            vars = var + " " + vars
+
+    quadruplets.append("write " + vars)
+    global quadrupletIndex
+    quadrupletIndex += 1
+    readWriteVars = []
 
 def p_error(p):
     raise Exception(f'Wrong Syntax {p}')
