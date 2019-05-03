@@ -2,6 +2,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 import sys
 from typeValidation import validType, isBool
+from exec import execute
 
 NUM_TEMP_VARIABLES = 50
 
@@ -106,7 +107,7 @@ t_biggerThan = r'\>'
 t_smallerThan = r'\<'
 t_equal = r'\='
 t_coma = r','
-t_string = r'\'[a-zA-Z0-9 \t\r\n\f()\[\]\&\!\@\#\$\%\^\-\=\+\/\,]*\''
+t_string = r'\'[a-zA-Z0-9 \?\:\t\r\n\f()\[\]\&\!\@\#\$\%\^\-\=\+\/\,]*\''
 t_plusSign = r'\+'
 t_minusSign = r'-'
 t_multSign = r'\*'
@@ -166,7 +167,7 @@ def addSymbol(name, type, dimensions):
                 symbols[name]["rows"] = dimensions[0]
                 symbols[name]["columns"] = dimensions[1]
                 symbols[name]["reserved"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions[0] * dimensions[1])
-                symbolsTableIndex += dimensions[0] * dimensions[1]
+                symbolsTableIndex += dimensions[0] * dimensions[1] + 1
         else:
             symbolsTableIndex += 1
 
@@ -381,7 +382,7 @@ def p_action_quadruplet_set(p):
     valueType = typesStack.pop()
     # print(p[-1])
     validType(operator, variableType, valueType)
-    quadruplets.append(str(operator) + ' ' + str(value) + ' ' + str(variableDirection) + '\n')
+    quadruplets.append(str(operator) + ' ' + str(value) + ' ' + str(variableDirection))
     global quadrupletIndex
     quadrupletIndex += 1
 
@@ -401,7 +402,7 @@ def addQuadruplet():
     leftOperandType = typesStack.pop()
     typesStack.append(validType(operator, leftOperandType, rightOperandType))
     temp = available.pop(0)
-    quadruplets.append(str(operator) + ' ' + str(leftOperand) + ' ' + str(rightOperand) + ' ' + str(temp) + '\n')
+    quadruplets.append(str(operator) + ' ' + str(leftOperand) + ' ' + str(rightOperand) + ' ' + str(temp))
     global quadrupletIndex
     quadrupletIndex += 1
     operandsStack.append(temp)
@@ -449,7 +450,7 @@ def p_action_quadruple_not_comparison(p):
     valueType = typesStack.pop()
     isBool(valueType)
     temp = available.pop(0)
-    quadruplets.append("not " + str(value) + ' ' + str(temp) +'\n')
+    quadruplets.append("not " + str(value) + ' ' + str(temp))
     global quadrupletIndex
     quadrupletIndex += 1
 
@@ -464,7 +465,7 @@ def p_action_quadruple_empty_jump(p):
 
 def fillJump(quadrupletsIndex, goto):
     # print("fillJump", quadrupletsIndex, goto)
-    quadruplets[quadrupletsIndex] = quadruplets[quadrupletsIndex] + str(goto) + '\n'
+    quadruplets[quadrupletsIndex] = quadruplets[quadrupletsIndex] + str(goto)
 
 def p_action_fill_jump(p):
     "ACTION_FILL_JUMP :"
@@ -577,7 +578,7 @@ def p_action_quadruple_read(p):
         if isinstance(var, list):
             vars = "*"  + var[1][1:] + " " + vars
         else:
-            vars = var + " " + vars
+            vars = symbols[var]["direction"] + " " + vars
 
     quadruplets.append("read " + vars)
     global quadrupletIndex
@@ -592,7 +593,10 @@ def p_action_quadruple_write(p):
         if isinstance(var, list):
             vars = "*"  + var[1][1:] + " " + vars
         else:
-            vars = var + " " + vars
+            if var in symbols:
+                vars = symbols[var]["direction"] + " " + vars
+            else:
+                vars = var + " " + vars
 
     quadruplets.append("write " + vars)
     global quadrupletIndex
@@ -614,11 +618,12 @@ if (len(sys.argv) > 1):
     programFile.close()
     i = 1
     for quadruplet in quadruplets:
-        print(i, "\t", quadruplet.replace("\n", ""))
+        print(i, "\t", quadruplet)
         i += 1
+    print()
+    execute(quadruplets, symbols, NUM_TEMP_VARIABLES)
 else:
     raise Exception('''
-    No file name was provided.
-    Please add the file name as a command line argument
+    No file name was provided.]
     Example: romp.py test.rmop
     ''')
