@@ -1,9 +1,15 @@
 program testAction
 integer i;
-integer j;
 integer nums[5][5];
 
-read i, nums[0][1]
-write 'hola', nums[1][1], i
+subroutine add1
+    i = i + 1
+end subroutine
+
+do i = 0, i < 10 then
+    call add1
+end do
+
+write i
 
 end program
