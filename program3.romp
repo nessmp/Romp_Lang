@@ -1,0 +1,60 @@
+program program3
+real x;
+real y;
+real i;
+real j;
+real factorial;
+real pow;
+real resultado;
+integer opcion;
+
+subroutine fact
+    factorial = 1
+    do i = 1, i <= y then
+        factorial = factorial * i
+    end do
+end subroutine
+
+subroutine p
+    pow = 1
+    do i = 0, i < y then
+        pow = pow * x
+    end do
+end subroutine
+
+subroutine e
+    resultado = 0
+    do y = 0, y < 10 then
+        call p
+        call fact
+        resultado = resultado + pow / factorial
+    end do
+end subroutine
+
+
+do then
+    write 'Operacion a realizar:'
+    write '1 - opcion X!'
+    write '2 - opcion X^Y'
+    write '3 - opcion e^X'
+    read opcion
+
+    if opcion == 3 then
+        write 'ingrese x'
+        read x
+        call e
+        write 'Resultado: ', resultado
+    elif opcion == 2 then
+        write 'ingrese x y y'
+        read x, y
+        call p
+        write 'resultado: ', pow
+    else
+        write 'ingrese x'
+        read y
+        call fact
+        write 'Resultado: ', factorial
+    end if
+
+end do
+end program

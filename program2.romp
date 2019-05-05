@@ -1,0 +1,45 @@
+program program2
+integer nums[10];
+integer i;
+integer j;
+integer aux;
+integer n;
+
+subroutine getNums
+    do i = 0, i < n then
+        read nums[i]
+    end do
+end subroutine
+
+subroutine printNums
+    write 'sorted nums :'
+    do i = 0, i < n then
+        write nums[i]
+    end do
+end subroutine
+
+subroutine bubbleSort
+    do i = 0, i < n - 1 then
+        do j = 0, j < n - 1 - i then
+            if nums[j] > nums[j+1] then
+                aux = nums[j + 1]
+                nums[j + 1] = nums[j]
+                nums[j] = aux
+            end if
+        end do
+    end do
+end subroutine
+
+do then
+    write 'Ingrese tamano del vector a ordenar (max 10)'
+    read n
+    call getNums
+    call bubbleSort
+    call printNums
+    write 'Ordenar otro vector? Si(1)/No(0)'
+    read aux
+    if aux == 0 then
+        exit
+    end if
+end do
+end program

@@ -1,0 +1,112 @@
+program program1
+integer matrixA[5][5];
+integer matrixB[5][5];
+integer matrixC[5][5];
+integer colsA;
+integer rowsA;
+integer colsB;
+integer rowsB;
+integer action;
+integer i;
+integer j;
+integer k;
+integer sum;
+
+subroutine fillMatrixA
+    write 'Valores para matriz A'
+    do i = 0, i < rowsA then
+        do j = 0, j < colsA then
+            write '(', i, ', ', j, '):'
+            read matrixA[i][j]
+        end do
+    end do
+end subroutine
+
+subroutine fillMatrixB
+    write 'Valores para matriz B'
+    do i = 0, i < rowsB then
+        do j = 0, j < colsB then
+            write '(', i, ', ', j, '):'
+            read matrixB[i][j]
+        end do
+    end do
+end subroutine
+
+subroutine multMatrices
+    do i = 0, i < rowsA then
+        do j = 0, j < colsB then
+            sum = 0
+            do k = 0, k < rowsB then
+                sum = sum + matrixA[i][k] * matrixB[k][j]
+            end do
+            matrixC[i][j] = sum
+        end do
+    end do
+end subroutine
+
+subroutine sumMatrices
+    do i = 0, i < rowsB then
+        do j = 0, j < colsB then
+            matrixC[i][j] = matrixA[i][j] + matrixB[i][j]
+        end do
+    end do
+end subroutine
+
+subroutine printMatrixA
+    write 'Matriz A:'
+    do i = 0, i < rowsA then
+        do j = 0, j < colsA then
+            write '(', i, ', ', j, '):'
+            write matrixA[i][j]
+        end do
+    end do
+end subroutine
+
+subroutine printMatrixB
+    write 'Matriz B:'
+    do i = 0, i < rowsB then
+        do j = 0, j < colsB then
+            write '(', i, ', ', j, '):'
+            write matrixB[i][j]
+        end do
+    end do
+end subroutine
+
+subroutine printMatrixC
+    write 'Matriz Resultante:'
+    do i = 0, i < rowsA then
+        do j = 0, j < colsB then
+            write '(', i, ', ', j, '):'
+            write matrixC[i][j]
+        end do
+    end do
+end subroutine
+
+write 'Ingrese tamano de la matriz A (filas columnas)'
+read rowsA, colsA
+write 'Ingrese tamano de la matriz B (filas, columnas)'
+read rowsB, colsB
+write 'Ingrese operacion o realizar'
+write '1 - Suma'
+write '2 - Multiplicacion'
+read action
+
+if action == 1 and rowsA == rowsB and colsA == colsB then
+    call fillMatrixA
+    call fillMatrixB
+    call sumMatrices
+    call printMatrixC
+elif action == 2 and colsA == rowsB then
+    call fillMatrixA
+    call fillMatrixB
+    call multMatrices
+    call printMatrixC
+else
+    if action != 1 or action != 2 then
+        write 'Accion invalida'
+    else
+        write 'Dimensiones de las matrices incompatibles para la accion requerida'
+    end if
+end if
+
+end program

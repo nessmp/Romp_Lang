@@ -1,0 +1,18 @@
+program program5
+integer num;
+integer total;
+
+subroutine sum
+    total = total + num
+    num = num - 1
+    if num > 0 then
+        call sum
+    end if
+end subroutine
+
+write 'Calcular la sumatoria de 1 a n. Ingrese n'
+read num
+call sum
+write total
+
+end program

@@ -1,0 +1,31 @@
+program program4
+integer number;
+
+! 'ciclo infinito hasta que number sea un numero entre 0 y 7'
+do then
+    ! 'lee numero tecleado por el usuario'
+    read number
+    ! 'Si esta en el rango correcto salimos'
+    if number <= 7 and number >= 0 then
+        exit
+    end if
+end do
+
+! 'Revisamos el valor del numero y lo imprimimos en letras'
+if number == 1 then
+    write 'uno'
+elif number == 2 then
+    write 'dos'
+elif number == 3 then
+    write 'tres'
+elif number == 4 then
+    write 'cuatro'
+elif number == 5 then
+    write 'cinco'
+elif number == 6 then
+    write 'seis'
+elif number == 7 then
+    write 'siete'
+end if
+
+end program
