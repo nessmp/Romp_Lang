@@ -10,7 +10,7 @@ class Variables:
         if direction[0] == "#":
             direction = direction[1:]
         elif direction[0] == "*":
-            direction = int(self.get("#" + direction[1:]))
+            direction = str(self.get("#" + direction[1:])["value"])
 
         if type == None:
             if isinstance(value, str):
@@ -26,14 +26,14 @@ class Variables:
             direction = direction[1:]
         elif direction[0] == "*":
             if direction[1:] in self.variables:
-                direction = self.variables[direction[1:]]
+                direction = str(self.variables[direction[1:]]["value"])
             else:
-                raise Exception("Error: Access before declaratios")
+                raise Exception("Error: Access before declaration")
 
         if direction in self.variables:
             return self.variables[direction]
         else:
-            raise Exception("Error: Access before declaratios")
+            raise Exception("Error: Access before declaration")
 
 variables = Variables()
 
@@ -143,7 +143,7 @@ def execute(quadruplets, symbols, numTempVariables):
     for _, value in symbols.items():
         if "direction" in value:
             if "reserved" in value:
-                for i in range(int(value["direction"][1:]), int(value["reserved"][1:]) + 1):
+                for i in range(int(value["direction"][1:]), int(value["reserved"][1:]) + 3):
                     variables.set("#" + str(i), value["value"], value["type"])
             else:
                 variables.set(value["direction"], value["value"], value["type"])
