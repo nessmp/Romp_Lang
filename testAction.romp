@@ -1,15 +1,18 @@
 program testAction
 integer i;
-integer nums[5][5];
+integer j;
+integer nums[2][2];
 
-subroutine add1
-    i = i + 1
-end subroutine
+nums[0][0] = 1
+nums[0][1] = 2
 
-do i = 0, i < 10 then
-    call add1
+nums[1][0] = 3
+nums[1][1] = 4
+
+do i = 0, i < 2 then
+    do j = 1, j < 2 + 1 then
+        write nums[i][j - 1]
+    end do
 end do
-
-write i
 
 end program
