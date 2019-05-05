@@ -45,6 +45,7 @@ tokens = [
     'smallerThan',
     'equal',
     'coma',
+    'exclamation',
     'string',
     'plusSign',
     'minusSign',
@@ -107,7 +108,8 @@ t_biggerThan = r'\>'
 t_smallerThan = r'\<'
 t_equal = r'\='
 t_coma = r','
-t_string = r'\'[a-zA-Z0-9 \?\:\t\r\n\f()\[\]\&\!\@\#\$\%\^\-\=\+\/\,]*\''
+t_exclamation = r'!'
+t_string = r'\'[a-zA-Z0-9 \.\?\:\t\r\n\f()\[\]\&\!\@\#\$\%\^\-\=\+\/\,]*\''
 t_plusSign = r'\+'
 t_minusSign = r'-'
 t_multSign = r'\*'
@@ -162,12 +164,16 @@ def addSymbol(name, type, dimensions):
             if isinstance(dimensions, int):
                 symbols[name]["rows"] = dimensions
                 symbols[name]["reserved"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions)
-                symbolsTableIndex += dimensions
+                symbols[name]["reserved2"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions + 1)
+                symbols[name]["usingReserved"] = False
+                symbolsTableIndex += dimensions + 3
             elif len(dimensions) == 2:
                 symbols[name]["rows"] = dimensions[0]
                 symbols[name]["columns"] = dimensions[1]
                 symbols[name]["reserved"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions[0] * dimensions[1])
-                symbolsTableIndex += dimensions[0] * dimensions[1] + 1
+                symbols[name]["reserved2"] = "#" + str(int(symbols[name]["direction"][1:]) + dimensions[0] * dimensions[1] + 1)
+                symbols[name]["usingReserved"] = False
+                symbolsTableIndex += dimensions[0] * dimensions[1] + 3
         else:
             symbolsTableIndex += 1
 
@@ -188,16 +194,17 @@ def p_type(p):
 
 def p_array(p):
     '''
-    ARRAY : openBracket int closeBracket openBracket int closeBracket
-          | openBracket int closeBracket
-          | openBracket id closeBracket openBracket id closeBracket
-          | openBracket id closeBracket
+    ARRAY : openBracket ARITEXP closeBracket openBracket ARITEXP closeBracket
+          | openBracket ARITEXP closeBracket
           |
     '''
     if len(p) == 7:
-        p[0] = [p[2], p[5]]
+        p[0] = [operandsStack.pop(), operandsStack.pop()]
+        typesStack.pop()
+        typesStack.pop()
     elif len(p) == 4:
-        p[0] = p[2]
+        p[0] = operandsStack.pop()
+        typesStack.pop()
 
 def p_subroutines(p):
     '''
@@ -214,6 +221,7 @@ def p_statements(p):
                | read READVAR ACTION_QUADRUPLE_READ STATEMENTS
                | write WRITEVAR ACTION_QUADRUPLE_WRITE STATEMENTS
                | exit ACTION_QUADRUPLE_EXITSSTACK STATEMENTS
+               | exclamation string STATEMENTS
                |
     '''
 
@@ -250,7 +258,7 @@ def p_andexp(p):
 def p_comparison(p):
     '''
     COMPARISON : openParentheses LOGEXP closeParentheses
-               | VALUE COMP VALUE ACTION_QUADRUPLE_COMP_COMPARISON
+               | ARITEXP COMP ARITEXP ACTION_QUADRUPLE_COMP_COMPARISON
                | not LOGEXP ACTION_QUADRUPLE_NOT_COMPARISON
     '''
 
@@ -337,7 +345,10 @@ def p_action_var_val(p):
     "ACTION_VAR_VAL :"
     if isinstance(p[-1], list):
         # print(p[-1])
-        operandsStack.append("*" + p[-1][1][1:])
+        if symbols[p[-1][0]]["reserved"] == p[-1][1] or symbols[p[-1][0]]["reserved2"] == p[-1][1]:
+            operandsStack.append("*" + p[-1][1][1:])
+        else:
+            operandsStack.append(p[-1][1])
         typesStack.append(symbols[p[-1][0]]["type"])
     else:
         operandsStack.append(symbols[p[-1]]["direction"])
@@ -374,7 +385,10 @@ def p_action_quadruplet_set(p):
     variableDirection = ""
     if isinstance(variable, list):
         variableType = symbols[variable[0]]["type"]
-        variableDirection = "*" + variable[1][1:]
+        if symbols[variable[0]]["reserved"] == variable[1] or symbols[variable[0]]["reserved2"] == variable[1]:
+            variableDirection = "*" + variable[1][1:]
+        else:
+            variableDirection = variable[1]
     else:
         variableType = symbols[variable]["type"]
         variableDirection = symbols[variable]["direction"]
@@ -529,17 +543,26 @@ def p_action_quadruple_array(p):
     global quadrupletIndex
     if p[-1] != None:
         if "reserved" not in symbols[p[-2]] or (isinstance(p[-1], int) and "columns" in symbols[p[-2]]):
-            raise Exception(f"{p[-3]} is not an array or matrix")
+            raise Exception(f"{p[-2]} is not an array or matrix")
         if isinstance(p[-1], int):
-            quadruplets.append("+ " + str(symbols[p[-2]]["direction"][1:]) + " " + str(p[-1]) + " " + str(symbols[p[-2]]["reserved"]))
-            quadrupletIndex += 1
-            p[0] = str(symbols[p[-2]]["reserved"])
-        else:
+            p[0] = "#" + str(p[-1] + int(symbols[p[-2]]["direction"][1:]))
+        elif isinstance(p[-1], list):
             quadruplets.append("* " + str(p[-1][0]) + " " + str(symbols[p[-2]]["columns"]) + " " + str(symbols[p[-2]]["reserved"]))
             quadruplets.append("+ " + str(p[-1][1]) + " " + str(symbols[p[-2]]["reserved"]) + " " + str(symbols[p[-2]]["reserved"]))
             quadruplets.append("+ " + str(symbols[p[-2]]["direction"][1:]) + " " + str(symbols[p[-2]]["reserved"]) + " " + str(symbols[p[-2]]["reserved"]))
             quadrupletIndex += 3
             p[0] = str(symbols[p[-2]]["reserved"])
+        else:
+            if symbols[p[-2]]["usingReserved"]:
+                quadruplets.append("+ " + str(symbols[p[-2]]["direction"][1:]) + " " + str(p[-1]) + " " + str(symbols[p[-2]]["reserved2"]))
+                quadrupletIndex += 1
+                p[0] = str(symbols[p[-2]]["reserved2"])
+                symbols[p[-2]]["usingReserved"] = False
+            else:
+                quadruplets.append("+ " + str(symbols[p[-2]]["direction"][1:]) + " " + str(p[-1]) + " " + str(symbols[p[-2]]["reserved"]))
+                quadrupletIndex += 1
+                p[0] = str(symbols[p[-2]]["reserved"])
+                symbols[p[-2]]["usingReserved"] = True
 
 def p_action_quadruple_gotomain(p):
     "ACTION_QUADRUPLE_GOTOMAIN :"
@@ -576,7 +599,10 @@ def p_action_quadruple_read(p):
     global readWriteVars
     for var in readWriteVars:
         if isinstance(var, list):
-            vars = "*"  + var[1][1:] + " " + vars
+            if symbols[var[0]]["reserved"] == var[1] or symbols[var[0]]["reserved2"] == var[1]:
+                vars = "*"  + var[1][1:] + " " + vars
+            else:
+                vars = var[1] + vars
         else:
             vars = symbols[var]["direction"] + " " + vars
 
@@ -591,7 +617,10 @@ def p_action_quadruple_write(p):
     global readWriteVars
     for var in readWriteVars:
         if isinstance(var, list):
-            vars = "*"  + var[1][1:] + " " + vars
+            if symbols[var[0]]["reserved"] == var[1] or symbols[var[0]]["reserved2"] == var[1]:
+                vars = "*"  + var[1][1:] + " " + vars
+            else:
+                vars = var[1] + vars
         else:
             if var in symbols:
                 vars = symbols[var]["direction"] + " " + vars
