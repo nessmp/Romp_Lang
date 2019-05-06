@@ -45,8 +45,8 @@ tokens = [
     'smallerThan',
     'equal',
     'coma',
-    'exclamation',
     'string',
+    'comment',
     'plusSign',
     'minusSign',
     'multSign',
@@ -108,7 +108,7 @@ t_biggerThan = r'\>'
 t_smallerThan = r'\<'
 t_equal = r'\='
 t_coma = r','
-t_exclamation = r'!'
+t_comment = r'![a-zA-Z0-9_ ]*'
 t_string = r'\'[a-zA-Z0-9 \.\?\:\t\r\n\f()\[\]\&\!\@\#\$\%\^\-\=\+\/\,]*\''
 t_plusSign = r'\+'
 t_minusSign = r'-'
@@ -221,7 +221,7 @@ def p_statements(p):
                | read READVAR ACTION_QUADRUPLE_READ STATEMENTS
                | write WRITEVAR ACTION_QUADRUPLE_WRITE STATEMENTS
                | exit ACTION_QUADRUPLE_EXITSSTACK STATEMENTS
-               | exclamation string STATEMENTS
+               | comment STATEMENTS
                |
     '''
 
