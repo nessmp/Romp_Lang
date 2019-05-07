@@ -1,9 +1,9 @@
 program program3
 real x;
 real y;
-real i;
+integer i;
 real j;
-real factorial;
+integer factorial;
 real pow;
 real resultado;
 integer opcion;
@@ -33,27 +33,27 @@ end subroutine
 
 
 do then
-    write 'Operacion a realizar:'
-    write '1 - opcion X!'
-    write '2 - opcion X^Y'
-    write '3 - opcion e^X'
+    write 'Operacion a realizar:\n'
+    write '1 - opcion X!\n'
+    write '2 - opcion X^Y\n'
+    write '3 - opcion e^X\n'
     read opcion
 
     if opcion == 3 then
-        write 'ingrese x'
+        write 'ingrese x\n'
         read x
         call e
-        write 'Resultado: ', resultado
+        write 'Resultado: ', resultado, '\n'
     elif opcion == 2 then
-        write 'ingrese x y y'
+        write 'ingrese x y y\n'
         read x, y
         call p
-        write 'resultado: ', pow
+        write 'resultado: ', pow, '\n'
     else
-        write 'ingrese x'
+        write 'ingrese x\n'
         read y
         call fact
-        write 'Resultado: ', factorial
+        write 'Resultado: ', factorial, '\n'
     end if
 
 end do

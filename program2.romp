@@ -7,14 +7,15 @@ integer n;
 
 subroutine getNums
     do i = 0, i < n then
+        write 'ingrese valor del #', i, ': '
         read nums[i]
     end do
 end subroutine
 
 subroutine printNums
-    write 'sorted nums :'
+    write 'sorted nums :\n'
     do i = 0, i < n then
-        write nums[i]
+        write nums[i], '\n'
     end do
 end subroutine
 
@@ -31,12 +32,17 @@ subroutine bubbleSort
 end subroutine
 
 do then
-    write 'Ingrese tamano del vector a ordenar (max 10)'
-    read n
+    do then
+        write 'Ingrese tamano del vector a ordenar (max 10)\n'
+        read n
+        if n > 0 and n < 10 then
+            exit
+        end if
+    end do
     call getNums
     call bubbleSort
     call printNums
-    write 'Ordenar otro vector? Si(1)/No(0)'
+    write 'Ordenar otro vector? Si(1)/No(0)\n'
     read aux
     if aux == 0 then
         exit

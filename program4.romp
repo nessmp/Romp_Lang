@@ -1,31 +1,32 @@
 program program4
 integer number;
 
-! ciclo infinito hasta que number sea un numero entre 0 y 7
+$ ciclo infinito hasta que number sea un numero entre 1 y 7
 do then
-    ! lee numero tecleado por el usuario
+    write 'Numero a escribir: (Entre 1 y 7): '
+    $ lee numero tecleado por el usuario
     read number
-    ! Si esta en el rango correcto salimos
-    if number <= 7 and number >= 0 then
+    $ Si esta en el rango correcto salimos
+    if number <= 7 and number > 0 then
         exit
     end if
 end do
 
-! Revisamos el valor del numero y lo imprimimos en letras
+$ Revisamos el valor del numero y lo imprimimos en letras
 if number == 1 then
-    write 'uno'
+    write 'uno\n'
 elif number == 2 then
-    write 'dos'
+    write 'dos\n'
 elif number == 3 then
-    write 'tres'
+    write 'tres\n'
 elif number == 4 then
-    write 'cuatro'
+    write 'cuatro\n'
 elif number == 5 then
-    write 'cinco'
+    write 'cinco\n'
 elif number == 6 then
-    write 'seis'
+    write 'seis\n'
 elif number == 7 then
-    write 'siete'
+    write 'siete\n'
 end if
 
 end program

@@ -8,11 +8,12 @@ subroutine sum
     if num > 0 then
         call sum
     end if
+    write 'aqui\n'
 end subroutine
 
-write 'Calcular la sumatoria de 1 a n. Ingrese n'
+write 'Calcular la sumatoria de 1 a n. Ingrese n\n'
 read num
 call sum
-write total
+write total, '\n'
 
 end program

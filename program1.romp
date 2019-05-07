@@ -13,20 +13,20 @@ integer k;
 integer sum;
 
 subroutine fillMatrixA
-    write 'Valores para matriz A'
+    write 'Valores para matriz A\n'
     do i = 0, i < rowsA then
         do j = 0, j < colsA then
-            write '(', i, ', ', j, '):'
+            write '(', i, ', ', j, '): '
             read matrixA[i][j]
         end do
     end do
 end subroutine
 
 subroutine fillMatrixB
-    write 'Valores para matriz B'
+    write 'Valores para matriz B\n'
     do i = 0, i < rowsB then
         do j = 0, j < colsB then
-            write '(', i, ', ', j, '):'
+            write '(', i, ', ', j, '): '
             read matrixB[i][j]
         end do
     end do
@@ -53,42 +53,43 @@ subroutine sumMatrices
 end subroutine
 
 subroutine printMatrixA
-    write 'Matriz A:'
+    write 'Matriz A:\n'
     do i = 0, i < rowsA then
         do j = 0, j < colsA then
-            write '(', i, ', ', j, '):'
-            write matrixA[i][j]
+            write matrixA[i][j], ' '
         end do
+        write '\n'
     end do
 end subroutine
 
 subroutine printMatrixB
-    write 'Matriz B:'
+    write 'Matriz B:\n'
     do i = 0, i < rowsB then
         do j = 0, j < colsB then
-            write '(', i, ', ', j, '):'
-            write matrixB[i][j]
+            write matrixB[i][j], ' '
         end do
+        write '\n'
     end do
 end subroutine
 
 subroutine printMatrixC
-    write 'Matriz Resultante:'
+    write 'Matriz Resultante:\n'
     do i = 0, i < rowsA then
         do j = 0, j < colsB then
-            write '(', i, ', ', j, '):'
-            write matrixC[i][j]
+            write matrixC[i][j], ' '
         end do
+        write '\n'
     end do
 end subroutine
 
-write 'Ingrese tamano de la matriz A (filas columnas)'
+
+write 'Ingrese tamano de la matriz A (filas columnas)\n'
 read rowsA, colsA
-write 'Ingrese tamano de la matriz B (filas, columnas)'
+write 'Ingrese tamano de la matriz B (filas, columnas)\n'
 read rowsB, colsB
-write 'Ingrese operacion o realizar'
-write '1 - Suma'
-write '2 - Multiplicacion'
+write 'Ingrese operacion o realizar\n'
+write '1 - Suma\n'
+write '2 - Multiplicacion\n'
 read action
 
 if action == 1 and rowsA == rowsB and colsA == colsB then
@@ -103,9 +104,9 @@ elif action == 2 and colsA == rowsB then
     call printMatrixC
 else
     if action != 1 or action != 2 then
-        write 'Accion invalida'
+        write 'Accion invalida\n'
     else
-        write 'Dimensiones de las matrices incompatibles para la accion requerida'
+        write 'Dimensiones de las matrices incompatibles para la accion requerida\n'
     end if
 end if
 
