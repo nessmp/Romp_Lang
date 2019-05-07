@@ -111,7 +111,7 @@ def executeQuadruple(quadruple, currentQuadruple):
                 print(data.replace('\'', ''), end="")
             else:
                 print(variables.get(data)["value"], end="")
-        print()
+        # print()
     elif quadruple[0] == "read":
         for data in quadruple[1:]:
             variables.set(data, input())
